@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Dois Mundos — protótipo MVP v2 (áudio)</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f4efe6">
+<title>Dois Mundos — protótipo v3</title>
 <style>
 :root{ --bg:#f4efe6; --ink:#33302c; --muted:#7a736a; --teal:#1f4e5f; --card:#fff;
        --shadow:0 10px 30px rgba(0,0,0,.10); --radius:28px; --anim:420ms; }
@@ -14,10 +17,13 @@ body.reduced *{ animation:none !important; transition:none !important; }
 html,body{ height:100%; margin:0; }
 body{ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
       background:var(--bg); color:var(--ink); overflow:hidden; user-select:none;
-      display:flex; align-items:center; justify-content:center; }
-#app{ position:relative; width:100%; height:100%; max-width:1280px; }
-.screen{ position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; padding:16px; }
+      -webkit-user-select:none; -webkit-touch-callout:none; height:100vh; height:100dvh; }
+#app{ position:relative; width:100%; height:100%; overflow:hidden; }
+.screen{ position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center;
+         padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 12px max(12px,env(safe-area-inset-left)); }
 .screen.on{ display:flex; animation:fade var(--anim) ease both; }
+/* telas da criança: o navegador não rouba o gesto (sem rolagem, sem zoom) */
+.screen.kid{ touch-action:none; }
 @keyframes fade{ from{opacity:0} to{opacity:1} }
 
 #t01{ background:var(--teal); color:#fff; cursor:pointer; }
@@ -25,35 +31,68 @@ body{ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-
 #t01 .sub{ opacity:.75; margin-top:8px; font-size:clamp(13px,2.2vw,18px); }
 #t01 .tap{ margin-top:26px; font-size:13px; opacity:.55; }
 
+/* ---------- seleção de mundo ---------- */
+#t02{ justify-content:flex-start; padding-top:9vh; }
 .worlds{ display:flex; gap:clamp(12px,3vw,40px); align-items:center; justify-content:center; width:100%; }
-.world{ flex:1 1 0; max-width:300px; aspect-ratio:1/1; border:none; border-radius:var(--radius);
+.world{ flex:none; width:min(20vw,38vh); height:min(20vw,38vh); border:none; border-radius:var(--radius);
         background:var(--card); box-shadow:var(--shadow); cursor:pointer; display:flex;
-        align-items:center; justify-content:center; font-size:clamp(48px,13vw,110px); line-height:1;
+        align-items:center; justify-content:center; font-size:min(11vw,20vh); line-height:1;
         transition:transform var(--anim) cubic-bezier(.34,1.3,.64,1); }
-.world:active{ transform:scale(.94); }
+.world.hit{ animation:grow 700ms cubic-bezier(.34,1.4,.64,1); }
 .world .ring{ display:flex; gap:6px; }
 .world .dot{ width:.32em; height:.32em; border-radius:50%; }
-#t02.rest .worlds{ opacity:.25; pointer-events:none; filter:grayscale(1); }
-#t02 .rest-msg{ display:none; position:absolute; bottom:18%; text-align:center; }
-#t02.rest .rest-msg{ display:block; font-size:clamp(40px,9vw,80px); }
-.adult{ position:absolute; right:14px; bottom:14px; width:46px; height:46px; border-radius:50%;
-        border:none; background:rgba(0,0,0,.06); color:var(--muted); font-size:20px; cursor:pointer; opacity:.5; }
+#t02.rest .worlds{ opacity:.25; filter:grayscale(1); }
+.adult{ position:absolute; right:14px; top:max(12px,env(safe-area-inset-top)); width:46px; height:46px; border-radius:50%;
+        border:none; background:rgba(0,0,0,.06); color:var(--muted); font-size:20px; cursor:pointer; opacity:.5; z-index:20; }
 .adult.charging{ background:var(--teal); color:#fff; opacity:1; transform:scale(1.15); transition:transform 3s linear; }
 
-.char{ position:absolute; left:3%; bottom:6%; width:clamp(72px,13vw,150px); aspect-ratio:1/1;
-       border-radius:50%; display:flex; align-items:center; justify-content:center;
-       font-size:clamp(34px,6.5vw,72px); box-shadow:var(--shadow); }
-.char.tuca{ background:#ffd9a0; } .char.robin{ background:#bcd9e8; }
-.char.talking{ animation:talk 620ms ease-in-out infinite; }
-@keyframes talk{ 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-8px) scale(1.05)} }
-.char .flag{ position:absolute; bottom:-6px; font-size:.30em; background:#fff; border-radius:12px; padding:2px 8px; box-shadow:var(--shadow); }
+/* ---------- balcão do teatrinho de fantoches ---------- */
+.balcao{ position:absolute; left:0; right:0; bottom:0; height:7vh; z-index:6;
+         background:linear-gradient(#c97a5e,#b3634a); border-radius:22px 22px 0 0;
+         box-shadow:0 -4px 14px rgba(0,0,0,.12); }
+.balcao::before{ content:""; position:absolute; left:0; right:0; top:6px; height:2px;
+                 background:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 10px,transparent 10px 18px); }
 
-.stage{ display:flex; align-items:center; justify-content:center; gap:clamp(14px,4vw,56px); width:100%; }
-.obj{ border:none; background:var(--card); box-shadow:var(--shadow); border-radius:var(--radius); cursor:pointer;
-      display:flex; align-items:center; justify-content:center;
+/* ---------- fantoches ---------- */
+.fantoche{ position:absolute; bottom:0; height:60vh; height:60dvh; aspect-ratio:220/300; z-index:5;
+           transition:transform 620ms cubic-bezier(.34,1.25,.64,1); }
+.fantoche.fora{ transform:translateY(112%); transition:transform 450ms ease-in; }
+.fantoche .mola{ width:100%; height:100%; }
+.fantoche svg{ width:100%; height:100%; display:block; overflow:visible; transform-origin:50% 100%;
+               animation:respira 3.2s ease-in-out infinite; }
+@keyframes respira{ 0%,100%{transform:rotate(-1.4deg)} 50%{transform:rotate(1.4deg) translateY(-1.2%)} }
+.fantoche .olho{ transform-box:fill-box; transform-origin:center; }
+.fantoche svg.pisca .olho{ animation:pisca 180ms ease-in-out; }
+@keyframes pisca{ 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(.08)} }
+.fantoche.dorme .olho{ transform:scaleY(.08); }
+.fantoche.dorme svg{ animation-duration:5.5s; }
+.fantoche.dorme::after{ content:"z z z"; position:absolute; top:4%; right:-4%; font:700 clamp(14px,3.4vh,28px)/1 sans-serif;
+                        color:var(--muted); animation:zz 2.6s ease-in-out infinite; }
+@keyframes zz{ 0%,100%{opacity:.25; transform:translateY(0)} 50%{opacity:.9; transform:translateY(-10px)} }
+.fantoche .crista,.fantoche .asaD,.fantoche .asaE{ transform-box:fill-box; }
+.fantoche .crista{ transform-origin:50% 100%; }
+.fantoche .asaD,.fantoche .asaE{ transform-origin:50% 12%; }
+.mola.pulo{ animation:pulo 700ms cubic-bezier(.3,1.6,.5,1); }
+@keyframes pulo{ 0%,100%{transform:translateY(0) scale(1)} 35%{transform:translateY(-10%) scale(1.04,.97)} }
+.mola.pulo .crista{ animation:crista 700ms ease-in-out; }
+@keyframes crista{ 0%,100%{transform:rotate(0)} 30%{transform:rotate(-12deg)} 65%{transform:rotate(9deg)} }
+.mola.aceno .asaD{ animation:aceno 900ms ease-in-out; }
+@keyframes aceno{ 0%,100%{transform:rotate(0)} 20%,60%{transform:rotate(-40deg)} 40%,80%{transform:rotate(-18deg)} }
+.mola.danca{ animation:danca 625ms ease-in-out infinite; }
+@keyframes danca{ 0%,100%{transform:translateY(0) rotate(0)} 25%{transform:rotate(-3deg)} 50%{transform:translateY(-3%)} 75%{transform:rotate(3deg)} }
+#fLpt,#fLen{ left:1vw; }
+#fT02pt,#fT02en{ height:46vh; height:46dvh; }
+#fT02pt{ left:1vw; } #fT02en{ right:1vw; }
+
+/* ---------- lição ---------- */
+#lesson{ padding-bottom:8vh; }
+#lesson .stage{ padding-left:calc(44vh + 3vw); padding-left:calc(44dvh + 3vw); }
+.stage{ display:flex; align-items:center; justify-content:center; gap:clamp(14px,3vw,48px); width:100%; }
+.obj{ border:none; background:var(--card); box-shadow:var(--shadow); border-radius:var(--radius); cursor:pointer; flex:none;
+      display:flex; align-items:center; justify-content:center; padding:0;
       transition:transform var(--anim) cubic-bezier(.34,1.3,.64,1), opacity var(--anim); }
-.obj.small{ width:clamp(90px,19vw,190px); aspect-ratio:1/1; font-size:clamp(44px,10vw,96px); }
-.obj.big{ width:clamp(130px,34vw,330px); aspect-ratio:1/1; font-size:clamp(64px,17vw,170px); }
+.obj.small{ width:min(17vw,32vh); height:min(17vw,32vh); font-size:min(9vw,17vh); }
+.obj.big{ width:min(28vw,54vh); height:min(28vw,54vh); font-size:min(15vw,29vh); }
 .obj.enter{ animation:pop var(--anim) cubic-bezier(.34,1.4,.64,1) both; }
 @keyframes pop{ from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
 .obj.hit{ animation:grow 900ms cubic-bezier(.34,1.4,.64,1); }
@@ -64,6 +103,7 @@ body{ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-
 @keyframes sing{ 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-22px) scale(1.12)} }
 .swatch{ width:74%; height:74%; border-radius:50%; }
 
+/* ---------- ponte ---------- */
 #t06{ background:var(--card); }
 .bridge{ max-width:640px; text-align:center; }
 .bridge .tag{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
@@ -78,8 +118,9 @@ body{ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-
 .btn.ghost{ background:transparent; color:var(--teal); box-shadow:inset 0 0 0 2px var(--teal); }
 .btn.mini{ padding:8px 16px; font-size:13px; margin:0; }
 
+/* ---------- painel ---------- */
 #t07{ background:var(--bg); justify-content:flex-start; padding:0; }
-.panel{ width:100%; max-width:780px; height:100%; overflow-y:auto; padding:20px 20px 60px; }
+.panel{ width:100%; max-width:780px; height:100%; overflow-y:auto; padding:20px 20px 60px; touch-action:pan-y; }
 .panel h1{ font-size:22px; margin:6px 0 2px; }
 .panel .lead{ color:var(--muted); font-size:13px; margin:0 0 18px; }
 .tabs{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
@@ -113,6 +154,7 @@ select{ font-size:13px; max-width:260px; padding:6px; border-radius:10px; border
 #gate p{ color:#bcd9e8; font-size:13px; margin:0 0 24px; }
 .opts{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
 .opt{ border:none; border-radius:18px; background:#fff; color:var(--teal); font-size:26px; font-weight:700; width:88px; height:72px; cursor:pointer; }
+.opt.wobble{ animation:wobble 620ms ease-in-out; }
 
 .note{ position:absolute; top:10px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.72);
        color:#fff; font-size:11px; padding:6px 14px; border-radius:999px; z-index:50; }
@@ -127,20 +169,23 @@ select{ font-size:13px; max-width:260px; padding:6px; border-radius:10px; border
 <div id="app">
   <section class="screen on" id="t01">
     <div class="logo">Dois Mundos</div>
-    <div class="sub">protótipo v2 · português e inglês</div>
+    <div class="sub">protótipo v3 · português e inglês</div>
     <div class="tap">toque para começar</div>
   </section>
 
-  <section class="screen" id="t02">
+  <section class="screen kid" id="t02">
     <div class="worlds" id="worlds"></div>
-    <div class="rest-msg">😴</div>
-    <div class="char" id="charT02"><span class="flag"></span></div>
+    <div class="fantoche" id="fT02pt"></div>
+    <div class="fantoche" id="fT02en"></div>
+    <div class="balcao"></div>
     <button class="adult" id="adultBtn" aria-label="Área dos pais">👤</button>
   </section>
 
-  <section class="screen" id="lesson">
+  <section class="screen kid" id="lesson">
     <div class="stage" id="stage"></div>
-    <div class="char" id="charLesson"><span class="flag"></span></div>
+    <div class="fantoche fora" id="fLpt"></div>
+    <div class="fantoche fora" id="fLen"></div>
+    <div class="balcao"></div>
   </section>
 
   <section class="screen" id="t06">
@@ -182,27 +227,24 @@ select{ font-size:13px; max-width:260px; padding:6px; border-radius:10px; border
 <script>
 "use strict";
 /* =========================================================================
-   DOIS MUNDOS — protótipo v2
-   Mudanças desta versão, todas na camada de áudio:
-   (a) Camada de ASSETS: se existirem arquivos em ./audio/, eles são usados.
-       É o caminho de produção — basta gerar os MP3 com vozes neurais de IA
-       (ver gerar_audio_azure.py) e colocá-los na pasta.
-   (b) Seleção de VOZ por qualidade: prioriza vozes neurais/naturais
-       instaladas no sistema em vez de pegar a primeira da lista.
-   (c) MÚSICA de verdade: motor Web Audio com Karplus-Strong (corda dedilhada),
-       sinos FM, pad de acordes e shaker. Melodia pentatônica por mundo.
-   (d) SONS DE ANIMAIS sintetizados por modelagem (fonte + formantes),
-       não mais a voz falando "au au".
+   DOIS MUNDOS — protótipo v3
+   Novidades desta versão:
+   (1) Tela cheia: pedida no primeiro toque e retomada no toque seguinte
+       sempre que o sistema a desfizer.
+   (2) Sorteio: palavras, ordem de apresentação, ordem das perguntas e
+       sugestão da ponte variam a cada lição.
+   (3) Toque tolerante: qualquer encostada ou arrasto sobre um item conta
+       como toque, com área de captura ampliada em volta de cada item.
+   (4) Sequência PT → EN: a mesma trinca é apresentada primeiro pelo Tuca,
+       em português, e logo depois pelo Robin, em inglês.
+   (5) Fantoches: papagaios em SVG (Brasil e EUA) com bico articulado,
+       piscadas, olhar que segue o item e boca sincronizada com o áudio.
    ========================================================================= */
 
 /* ============================== 1. CONTEÚDO ============================== */
 const CONTENT = {
-  characters:{
-    pt:{ id:"tuca",  glyph:"🦜", flag:"🇧🇷", cls:"tuca"  },
-    en:{ id:"robin", glyph:"🐦", flag:"🇺🇸", cls:"robin" }
-  },
   worlds:[
-    { id:"animais", icon:"🐮", name:{pt:"os animais", en:"the animals"}, key:"F", words:[
+    { id:"animais", icon:"🐮", name:{pt:"os animais", en:"the animals"}, words:[
       {id:"dog",   pt:"cachorro",   en:"dog",   art:"🐶", sfx:"dog"},
       {id:"cat",   pt:"gato",       en:"cat",   art:"🐱", sfx:"cat"},
       {id:"cow",   pt:"vaca",       en:"cow",   art:"🐮", sfx:"cow"},
@@ -214,7 +256,7 @@ const CONTENT = {
       {id:"sheep", pt:"ovelha",     en:"sheep", art:"🐑", sfx:"sheep"},
       {id:"hen",   pt:"galinha",    en:"hen",   art:"🐔", sfx:"hen"}
     ]},
-    { id:"cores", icon:"🎨", name:{pt:"as cores", en:"the colors"}, key:"C", words:[
+    { id:"cores", icon:"🎨", name:{pt:"as cores", en:"the colors"}, words:[
       {id:"red",    pt:"vermelho", ptF:"vermelha", en:"red",    color:"#e0453e"},
       {id:"blue",   pt:"azul",     ptF:"azul",     en:"blue",   color:"#3a7bd5"},
       {id:"yellow", pt:"amarelo",  ptF:"amarela",  en:"yellow", color:"#f2c230"},
@@ -226,7 +268,7 @@ const CONTENT = {
       {id:"white",  pt:"branco",   ptF:"branca",   en:"white",  color:"#f0ece4"},
       {id:"brown",  pt:"marrom",   ptF:"marrom",   en:"brown",  color:"#8a6042"}
     ]},
-    { id:"comidas", icon:"🍎", name:{pt:"as comidas", en:"the food"}, key:"G", words:[
+    { id:"comidas", icon:"🍎", name:{pt:"as comidas", en:"the food"}, words:[
       {id:"banana", pt:"banana", en:"banana", art:"🍌"},
       {id:"apple",  pt:"maçã",   en:"apple",  art:"🍎"},
       {id:"milk",   pt:"leite",  en:"milk",   art:"🥛"},
@@ -276,10 +318,16 @@ const ARTICLE = { dog:"o",cat:"o",cow:"a",duck:"o",horse:"o",bird:"o",fish:"o",p
   banana:"a",apple:"a",milk:"o",water:"a",bread:"o",egg:"o",rice:"o",grape:"a",cake:"o",juice:"o" };
 function question(w, lang){
   if(lang === "en") return w.color ? "Where is the " + w.en + " one?" : "Where is the " + w.en + "?";
-  if(w.color) return "Cadê a cor " + (w.ptF || w.pt) + "?";   // concordância: "a cor vermelha"
+  if(w.color) return "Cadê a cor " + (w.ptF || w.pt) + "?";
   return "Cadê " + (ARTICLE[w.id] || "o") + " " + w.pt + "?";
 }
 CONTENT.worlds.forEach(wd => wd.words.forEach(w => { w.world = wd.id; w.tip = TIPS[w.id]; }));
+const FALAS = {
+  ola:   { pt:"Oi! Eu sou o Tuca.", en:"Hi! I'm Robin." },
+  cantar:{ pt:"Vamos cantar!",      en:"Let's sing!" },
+  bravo: { pt:"Muito bem!",         en:"Very good!" },
+  vamos: { pt:"Vamos ver",          en:"Let's see" }
+};
 
 /* ============================ 2. PERSISTÊNCIA ============================ */
 const KEY = "doismundos.v2";
@@ -287,7 +335,7 @@ const DEFAULTS = {
   progresso:{}, sessoes:[], usoDiario:{},
   preferencias:{ limiteDiarioMin:15, linguaFixada:null, contrasteAlto:false, animacaoReduzida:false,
                  telemetriaOptin:false, vozPt:null, vozEn:null, volumeMusica:0.5 },
-  ultimaLingua:null, ultimaData:null
+  ultimaData:null
 };
 let S = load();
 function load(){
@@ -303,9 +351,91 @@ function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} 
 const hoje = () => new Date().toISOString().slice(0,10);
 const diasEntre = (a,b) => Math.round((new Date(b) - new Date(a)) / 86400000);
 
-/* ======================= 3. NÚCLEO DE ÁUDIO (Web Audio) ================== */
+/* ============================ 3. UTILIDADES ============================== */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+function ir(id){ $$(".screen").forEach(s => s.classList.toggle("on", s.id === id)); }
+const espera = ms => new Promise(r => setTimeout(r, ms));
+function aviso(txt, ms){ const n = $("#note"); n.textContent = txt; n.style.display = "block";
+  clearTimeout(n._t); n._t = setTimeout(() => n.style.display = "none", ms || 3200); }
+function embaralhar(a){ const b = a.slice(); for(let i = b.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+function reanimar(el, cls, ms){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+  clearTimeout(el["_t" + cls]); el["_t" + cls] = setTimeout(() => el.classList.remove(cls), ms); }
+
+/* ============================ 4. TELA CHEIA ============================== *
+ * O navegador só permite entrar em tela cheia dentro de um gesto do usuário.
+ * Por isso a pedimos no primeiro toque e de novo em qualquer toque posterior,
+ * caso o sistema a tenha desfeito (app em segundo plano, gesto de voltar).  */
+const Tela = {
+  ativa(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); },
+  async cheia(){
+    const d = document.documentElement;
+    try{
+      if(!this.ativa()){
+        if(d.requestFullscreen) await d.requestFullscreen({ navigationUI:"hide" });
+        else if(d.webkitRequestFullscreen) d.webkitRequestFullscreen();
+      }
+    }catch(e){ /* recusado pelo navegador: segue sem tela cheia */ }
+    try{ if(screen.orientation && screen.orientation.lock) await screen.orientation.lock("landscape"); }catch(e){}
+  }
+};
+document.addEventListener("pointerup", () => { if(!Tela.ativa()) Tela.cheia(); }, { passive:true });
+document.addEventListener("contextmenu", e => e.preventDefault());
+
+/* ======================== 5. TOQUE TOLERANTE ============================= *
+ * Para uma criança de 2 anos, "tocar" é encostar, esfregar ou arrastar.
+ * Todo item tocável tem data-tap e uma função el._tap. Em cada pointerdown
+ * e pointermove, procuramos o item mais próximo do dedo — dentro dele ou a
+ * até ~6% da menor dimensão da tela — e disparamos o toque ao ENTRAR nele.
+ * Um arrasto que passa por dois itens dispara os dois, uma vez cada.      */
+const Toque = {
+  ultimo:new WeakMap(), porPonteiro:new Map(), RECARGA:650,
+  raio(){ return Math.min(innerWidth, innerHeight) * 0.06; },
+  telaKid(){ const t = document.querySelector(".screen.on"); return t && t.classList.contains("kid") ? t : null; },
+  achar(x, y){
+    const tela = this.telaKid(); if(!tela) return null;
+    let melhor = null, dMin = Infinity;
+    tela.querySelectorAll("[data-tap]").forEach(el => {
+      if(el.dataset.off) return;
+      const r = el.getBoundingClientRect();
+      if(!r.width || !r.height) return;
+      const dx = Math.max(r.left - x, 0, x - r.right);
+      const dy = Math.max(r.top - y, 0, y - r.bottom);
+      const d = Math.hypot(dx, dy);
+      if(d < dMin){ dMin = d; melhor = el; }
+    });
+    return dMin <= this.raio() ? melhor : null;
+  },
+  disparar(el){
+    const agora = performance.now();
+    if(agora - (this.ultimo.get(el) || 0) < this.RECARGA) return;
+    this.ultimo.set(el, agora);
+    try{ if(el._tap) el._tap(el); }catch(e){ console.error(e); }
+  },
+  tratar(e){
+    const el = this.achar(e.clientX, e.clientY);
+    const anterior = this.porPonteiro.get(e.pointerId);
+    if(el && el !== anterior) this.disparar(el);
+    this.porPonteiro.set(e.pointerId, el);
+  },
+  iniciar(){
+    document.addEventListener("pointerdown", e => {
+      if(!this.telaKid() || e.target.closest(".adult")) return;
+      this.porPonteiro.set(e.pointerId, null);
+      this.tratar(e);
+    }, { passive:true });
+    document.addEventListener("pointermove", e => {
+      if(this.porPonteiro.has(e.pointerId)) this.tratar(e);
+    }, { passive:true });
+    const fim = e => this.porPonteiro.delete(e.pointerId);
+    ["pointerup","pointercancel"].forEach(t => document.addEventListener(t, fim, { passive:true }));
+  }
+};
+Toque.iniciar();
+
+/* ======================= 6. NÚCLEO DE ÁUDIO ============================== */
 const Audio2 = {
-  ctx:null, master:null, musicBus:null, sfxBus:null, comp:null, ready:false,
+  ctx:null, master:null, musicBus:null, sfxBus:null, comp:null,
   init(){
     if(this.ctx) return this.ctx;
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -318,12 +448,10 @@ const Audio2 = {
     this.sfxBus = this.ctx.createGain();   this.sfxBus.gain.value = 0.85;
     this.musicBus.connect(this.master); this.sfxBus.connect(this.master);
     this.master.connect(this.comp); this.comp.connect(this.ctx.destination);
-    this.ready = true;
     return this.ctx;
   },
   resume(){ if(this.ctx && this.ctx.state === "suspended") this.ctx.resume(); },
   now(){ return this.ctx ? this.ctx.currentTime : 0; },
-  // abaixa a música enquanto a voz fala, para a palavra nunca competir com a trilha
   duck(on){
     if(!this.ctx) return;
     const alvo = on ? S.preferencias.volumeMusica * 0.28 : S.preferencias.volumeMusica;
@@ -332,11 +460,7 @@ const Audio2 = {
   }
 };
 
-/* ==================== 4. SÍNTESE DE SONS DE ANIMAIS ====================== *
- * Modelagem fonte-filtro: uma fonte periódica (as pregas vocais do bicho)
- * passa por filtros de formante (o trato vocal). É o mesmo princípio da
- * síntese de fala — por isso soa muito mais próximo do real do que a voz
- * do TTS pronunciando "au au".                                             */
+/* ==================== 7. SONS DE ANIMAIS (fonte-formante) ================ */
 const SFX = {
   env(g, t0, a, d, peak){
     g.gain.setValueAtTime(0.0001, t0);
@@ -349,7 +473,6 @@ const SFX = {
     for(let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
     return b;
   },
-  // voz animal genérica: fonte serra/pulso + 2 formantes + ruído de sopro
   growl(t0, opts){
     const ctx = Audio2.ctx, out = ctx.createGain();
     out.connect(Audio2.sfxBus);
@@ -360,14 +483,12 @@ const SFX = {
       const frac = (i + 1) / (opts.f0.length - 1);
       src.frequency.exponentialRampToValueAtTime(Math.max(20, f), t0 + opts.dur * frac);
     });
-    // vibrato / bleat
     if(opts.vib){
       const lfo = ctx.createOscillator(), lg = ctx.createGain();
       lfo.frequency.value = opts.vib[0]; lg.gain.value = opts.vib[1];
       lfo.connect(lg); lg.connect(src.frequency);
       lfo.start(t0); lfo.stop(t0 + opts.dur + 0.1);
     }
-    // formantes
     let node = src;
     (opts.formants || [[800, 6]]).forEach(fm => {
       const bp = ctx.createBiquadFilter();
@@ -378,7 +499,6 @@ const SFX = {
     const g = ctx.createGain(); node.connect(g); g.connect(out);
     this.env(g, t0, opts.atk || 0.02, opts.dur, opts.gain || 0.5);
     src.start(t0); src.stop(t0 + opts.dur + 0.15);
-    // camada de ruído (ar)
     if(opts.breath){
       const nz = ctx.createBufferSource(); nz.buffer = this.noiseBuffer(opts.dur + 0.1);
       const nf = ctx.createBiquadFilter(); nf.type = "bandpass";
@@ -397,22 +517,13 @@ const SFX = {
     return R ? R.call(this, t) : 600;
   },
   recipes:{
-    dog(t){ // dois latidos curtos: ataque rápido, queda de tom, formante alto
-      [0, 0.26].forEach(o => this.growl(t + o, { wave:"sawtooth", f0:[420, 260, 180], dur:0.16, atk:0.004,
-        formants:[[1100, 4], [2400, 8]], breath:[1800, 1.5, 0.22], gain:0.75 }));
-      return 700;
-    },
-    cat(t){ // miado: tom sobe e desce, formante varre (o "miiiaaau")
-      this.growl(t, { wave:"sawtooth", f0:[520, 780, 700, 430], dur:0.75, atk:0.06,
-        formants:[[900, 7, 1500], [2100, 9]], gain:0.55, vib:[5, 12] });
-      return 900;
-    },
-    cow(t){ // mugido: fonte grave, trato longo, quase sem formante agudo
-      this.growl(t, { wave:"sawtooth", f0:[150, 128, 108, 96], dur:1.15, atk:0.09,
-        formants:[[420, 3], [780, 4]], gain:0.7, vib:[5.5, 5], breath:[500, 1, 0.06] });
-      return 1350;
-    },
-    duck(t){ // quack: pulso curtíssimo com modulação rápida (o "buzz" nasal)
+    dog(t){ [0, 0.26].forEach(o => this.growl(t + o, { wave:"sawtooth", f0:[420, 260, 180], dur:0.16, atk:0.004,
+        formants:[[1100, 4], [2400, 8]], breath:[1800, 1.5, 0.22], gain:0.75 })); return 700; },
+    cat(t){ this.growl(t, { wave:"sawtooth", f0:[520, 780, 700, 430], dur:0.75, atk:0.06,
+        formants:[[900, 7, 1500], [2100, 9]], gain:0.55, vib:[5, 12] }); return 900; },
+    cow(t){ this.growl(t, { wave:"sawtooth", f0:[150, 128, 108, 96], dur:1.15, atk:0.09,
+        formants:[[420, 3], [780, 4]], gain:0.7, vib:[5.5, 5], breath:[500, 1, 0.06] }); return 1350; },
+    duck(t){
       [0, 0.22, 0.44].forEach((o, i) => {
         const ctx = Audio2.ctx, t0 = t + o;
         const src = ctx.createOscillator(); src.type = "square";
@@ -429,12 +540,9 @@ const SFX = {
       });
       return 750;
     },
-    horse(t){ // relincho: glissando descendente com tremolo rápido
-      this.growl(t, { wave:"sawtooth", f0:[760, 620, 430, 300, 240], dur:0.95, atk:0.03,
-        formants:[[1400, 5, 800], [2600, 7]], gain:0.6, vib:[26, 45], breath:[2200, 1.2, 0.18] });
-      return 1150;
-    },
-    bird(t){ // chilro: varreduras rápidas de senoide em região aguda
+    horse(t){ this.growl(t, { wave:"sawtooth", f0:[760, 620, 430, 300, 240], dur:0.95, atk:0.03,
+        formants:[[1400, 5, 800], [2600, 7]], gain:0.6, vib:[26, 45], breath:[2200, 1.2, 0.18] }); return 1150; },
+    bird(t){
       const ctx = Audio2.ctx;
       [0, 0.16, 0.3, 0.47].forEach((o, i) => {
         const t0 = t + o, osc = ctx.createOscillator(), g = ctx.createGain();
@@ -449,7 +557,7 @@ const SFX = {
       });
       return 750;
     },
-    fish(t){ // bolhas: blips curtos subindo de tom
+    fish(t){
       const ctx = Audio2.ctx;
       [0, 0.13, 0.24, 0.38].forEach((o, i) => {
         const t0 = t + o, osc = ctx.createOscillator(), g = ctx.createGain();
@@ -462,47 +570,30 @@ const SFX = {
       });
       return 650;
     },
-    pig(t){ // grunhido: fonte grave curta + muito ruído
-      [0, 0.2, 0.38].forEach(o => this.growl(t + o, { wave:"sawtooth", f0:[190, 250, 160], dur:0.14, atk:0.01,
-        formants:[[700, 3], [1500, 4]], breath:[900, 1.2, 0.3], gain:0.5 }));
-      return 700;
-    },
-    sheep(t){ // balido: o "béé" é vibrato profundo e rápido
-      this.growl(t, { wave:"sawtooth", f0:[390, 360, 330], dur:0.85, atk:0.04,
-        formants:[[1050, 6], [2300, 8]], gain:0.5, vib:[14, 38], breath:[1600, 1.5, 0.1] });
-      return 1000;
-    },
-    hen(t){ // cacarejo: pulsos curtos irregulares
-      [0, 0.15, 0.28, 0.48].forEach((o, i) => this.growl(t + o, { wave:"square",
+    pig(t){ [0, 0.2, 0.38].forEach(o => this.growl(t + o, { wave:"sawtooth", f0:[190, 250, 160], dur:0.14, atk:0.01,
+        formants:[[700, 3], [1500, 4]], breath:[900, 1.2, 0.3], gain:0.5 })); return 700; },
+    sheep(t){ this.growl(t, { wave:"sawtooth", f0:[390, 360, 330], dur:0.85, atk:0.04,
+        formants:[[1050, 6], [2300, 8]], gain:0.5, vib:[14, 38], breath:[1600, 1.5, 0.1] }); return 1000; },
+    hen(t){ [0, 0.15, 0.28, 0.48].forEach((o, i) => this.growl(t + o, { wave:"square",
         f0:[520 - i * 40, 340 - i * 30], dur:0.09, atk:0.005,
-        formants:[[1600, 6], [2800, 7]], breath:[2000, 2, 0.16], gain:0.38 }));
-      return 750;
-    }
+        formants:[[1600, 6], [2800, 7]], breath:[2000, 2, 0.16], gain:0.38 })); return 750; }
   }
 };
 
-/* ========================= 5. MOTOR MUSICAL ============================== *
- * Karplus-Strong para corda dedilhada (timbre de harpa/violão),
- * sinos FM para a melodia, pad de acordes e shaker.                        */
+/* ========================= 8. MOTOR MUSICAL ============================== */
 const Music = {
-  fontes:[], tocando:false,
+  fontes:[],
   nota(semi, oct){ return 261.6256 * Math.pow(2, (semi + (oct || 0) * 12) / 12); },
-  // corda dedilhada sintetizada offline (som bem mais agradável que um oscilador cru)
   pluck(freq, t0, dur, gain){
     const ctx = Audio2.ctx, sr = ctx.sampleRate;
-    const N = Math.max(2, Math.round(sr / freq));
-    const len = Math.ceil(sr * dur);
+    const N = Math.max(2, Math.round(sr / freq)), len = Math.ceil(sr * dur);
     const buf = ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
     const ring = new Float32Array(N);
     for(let i = 0; i < N; i++) ring[i] = Math.random() * 2 - 1;
-    // suaviza o ruído inicial: deixa o ataque menos áspero
-    for(let p = 0; p < 3; p++)
-      for(let i = 0; i < N; i++) ring[i] = (ring[i] + ring[(i + 1) % N]) * 0.5;
+    for(let p = 0; p < 3; p++) for(let i = 0; i < N; i++) ring[i] = (ring[i] + ring[(i + 1) % N]) * 0.5;
     let idx = 0, prev = 0;
-    const damp = 0.996;
     for(let n = 0; n < len; n++){
-      const cur = ring[idx];
-      const out = (cur + prev) * 0.5 * damp;
+      const cur = ring[idx], out = (cur + prev) * 0.5 * 0.996;
       prev = cur; ring[idx] = out; idx = (idx + 1) % N;
       d[n] = out * Math.min(1, n / 200) * (1 - n / len);
     }
@@ -511,7 +602,6 @@ const Music = {
     src.connect(g); g.connect(Audio2.musicBus);
     src.start(t0); this.fontes.push(src);
   },
-  // sino FM suave para a melodia principal
   bell(freq, t0, dur, gain){
     const ctx = Audio2.ctx;
     const car = ctx.createOscillator(), mod = ctx.createOscillator();
@@ -525,8 +615,7 @@ const Music = {
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(gain, t0 + 0.012);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    car.start(t0); car.stop(t0 + dur + 0.05);
-    mod.start(t0); mod.stop(t0 + dur + 0.05);
+    car.start(t0); car.stop(t0 + dur + 0.05); mod.start(t0); mod.stop(t0 + dur + 0.05);
     this.fontes.push(car, mod);
   },
   pad(semis, t0, dur, gain){
@@ -554,7 +643,6 @@ const Music = {
     src.start(t0); src.stop(t0 + 0.1);
     this.fontes.push(src);
   },
-  // melodias pentatônicas: impossível soar dissonante, ideal para a faixa etária
   melodias:{
     animais:[0,4,7,4, 9,7,4,0, 2,4,7,9, 7,4,2,0],
     cores:  [7,9,12,9, 7,4,7,0, 4,7,9,12, 9,7,4,0],
@@ -562,47 +650,190 @@ const Music = {
   },
   acordes:[[0,4,7],[9,12,16],[5,9,12],[7,11,14]],
   transporte:{ animais:5, cores:0, comidas:7 },
-  parar(){
-    this.fontes.forEach(s => { try{ s.stop(); }catch(e){} });
-    this.fontes = []; this.tocando = false;
-  },
-  /* Toca N compassos e devolve {dur, beat, t0} para sincronizar a voz. */
+  parar(){ this.fontes.forEach(s => { try{ s.stop(); }catch(e){} }); this.fontes = []; },
   tocar(mundoId, compassos){
-    if(!Audio2.init()) return { dur:0, beat:0.5, t0:0 };
-    Audio2.resume(); this.parar(); this.tocando = true;
-    const bpm = 96, beat = 60 / bpm, bar = beat * 4;
-    const t0 = Audio2.now() + 0.12;
-    const mel = this.melodias[mundoId] || this.melodias.animais;
-    const tr = this.transporte[mundoId] || 0;
+    if(!Audio2.init()) return { bar:2.5 };
+    Audio2.resume(); this.parar();
+    const beat = 60 / 96, bar = beat * 4, t0 = Audio2.now() + 0.12;
+    const mel = this.melodias[mundoId] || this.melodias.animais, tr = this.transporte[mundoId] || 0;
     for(let c = 0; c < compassos; c++){
       const tb = t0 + c * bar;
       this.pad(this.acordes[c % 4].map(s => s + tr), tb, bar * 0.98, 0.055);
       for(let b = 0; b < 4; b++){
-        const tn = tb + b * beat;
-        const n = mel[(c * 4 + b) % mel.length] + tr;
-        // melodia em sino + contracanto dedilhado uma oitava abaixo
+        const tn = tb + b * beat, n = mel[(c * 4 + b) % mel.length] + tr;
         this.bell(this.nota(n), tn, beat * 0.9, 0.16);
         if(b % 2 === 0) this.pluck(this.nota(n, -1), tn, beat * 1.6, 0.13);
         this.shaker(tn + beat * 0.5, 0.035);
       }
     }
-    return { dur:compassos * bar, beat, bar, t0 };
+    return { bar };
   }
 };
 
-/* =========================== 6. VOZ =====================================
- * Ordem de preferência:
- *   1) arquivo em ./audio/{lang}/{id}.mp3  (gerado por IA — ver script)
- *   2) voz neural instalada no sistema, escolhida por pontuação
- *   3) qualquer voz do idioma                                             */
+/* ============================ 9. FANTOCHES =============================== *
+ * Papagaios de feltro em SVG. O bico é articulado: a mandíbula desce, o céu
+ * da boca aparece e o bico superior levanta um pouco — como a mão dentro do
+ * fantoche. Com arquivo de áudio, a abertura segue a energia real do som
+ * (AnalyserNode). Com voz do sistema, que não pode ser analisada, a boca
+ * segue um ritmo silábico simulado.                                        */
+let _fid = 0;
+function estrela(cx, cy, r, cor){
+  const p = [];
+  for(let i = 0; i < 10; i++){
+    const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r;
+    p.push((cx + rr * Math.cos(a)).toFixed(1) + "," + (cy + rr * Math.sin(a)).toFixed(1));
+  }
+  return '<polygon points="' + p.join(" ") + '" fill="' + (cor || "#fff") + '"/>';
+}
+function svgFantoche(lang){
+  const id = "fp" + (++_fid);
+  const pt = lang === "pt";
+  const P = pt ? {
+    corpo:"#2f9e55", cabeca:"#38b061", manga:"#1f7a40", asa:"#27884a", pontaAsa:"#ffd23f",
+    crista:["#ffd23f","#2456a6","#ffd23f"] } : {
+    corpo:"#f4f1ea", cabeca:"#2b418f", manga:"#223374", asa:"#c8323c", pontaAsa:"#ffffff",
+    crista:["#c8323c","#ffffff","#c8323c"] };
+  const costura = 'stroke="rgba(0,0,0,.18)" stroke-width="2" stroke-dasharray="5 4"';
+  const manga = '<path d="M62 212 Q56 258 50 300 L170 300 Q164 258 158 212 Z" fill="' + P.manga + '" ' + costura + '/>' +
+    (pt ? '<rect x="55" y="244" width="110" height="10" fill="#ffd23f"/><rect x="55" y="258" width="110" height="4" fill="#2456a6"/>'
+        : [78,98,118,138].map(x => estrela(x + 2, 252, 6)).join(""));
+  const barriga = pt ?
+    '<polygon points="110,150 156,188 110,226 64,188" fill="#ffd23f" stroke="#e0b21e" stroke-width="2"/>' +
+    '<circle cx="110" cy="188" r="20" fill="#2456a6"/>' +
+    '<path d="M91 184 Q110 175 129 190" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round"/>' +
+    '<circle cx="103" cy="196" r="1.6" fill="#fff"/><circle cx="114" cy="199" r="1.6" fill="#fff"/><circle cx="120" cy="194" r="1.3" fill="#fff"/>'
+    :
+    '<clipPath id="' + id + 'c"><ellipse cx="110" cy="190" rx="50" ry="40"/></clipPath>' +
+    '<g clip-path="url(#' + id + 'c)">' +
+      Array.from({ length:11 }, (_, i) => '<rect x="55" y="' + (150 + i * 8) + '" width="110" height="8" fill="' + (i % 2 ? "#ffffff" : "#c8323c") + '"/>').join("") +
+    '</g><ellipse cx="110" cy="190" rx="50" ry="40" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="2"/>';
+  const estrelasCabeca = pt ? "" : [[84,56],[104,48],[126,50],[146,62],[68,72],[156,84]].map(p => estrela(p[0], p[1], 4.5)).join("");
+  const olho = (cx) =>
+    '<g class="olho"><circle cx="' + cx + '" cy="90" r="17" fill="#fff" stroke="#2a2a2a" stroke-width="2.5"/>' +
+    '<g class="pupila"><circle cx="' + (cx + 2) + '" cy="92" r="8" fill="#1b1b1b"/><circle cx="' + (cx - 1) + '" cy="89" r="2.8" fill="#fff"/></g></g>';
+  return '<svg viewBox="0 0 220 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    manga +
+    '<ellipse cx="110" cy="188" rx="66" ry="54" fill="' + P.corpo + '" ' + costura + '/>' +
+    barriga +
+    '<g class="asaE"><ellipse cx="46" cy="186" rx="18" ry="38" transform="rotate(18 46 186)" fill="' + P.asa + '"/>' +
+      '<ellipse cx="38" cy="214" rx="10" ry="14" transform="rotate(18 38 214)" fill="' + P.pontaAsa + '"/></g>' +
+    '<g class="asaD"><ellipse cx="174" cy="186" rx="18" ry="38" transform="rotate(-18 174 186)" fill="' + P.asa + '"/>' +
+      '<ellipse cx="182" cy="214" rx="10" ry="14" transform="rotate(-18 182 214)" fill="' + P.pontaAsa + '"/></g>' +
+    '<g class="cabeca">' +
+      '<g class="crista">' +
+        '<path d="M96 44 Q86 14 104 6 Q104 28 108 42 Z" fill="' + P.crista[0] + '"/>' +
+        '<path d="M106 40 Q110 4 128 2 Q120 24 116 42 Z" fill="' + P.crista[1] + '"/>' +
+        '<path d="M116 44 Q132 18 148 20 Q134 34 124 48 Z" fill="' + P.crista[2] + '"/>' +
+      '</g>' +
+      '<circle cx="110" cy="100" r="62" fill="' + P.cabeca + '" ' + costura + '/>' +
+      estrelasCabeca +
+      '<circle cx="72" cy="114" r="9" fill="#ff8fa3" opacity=".55"/><circle cx="148" cy="114" r="9" fill="#ff8fa3" opacity=".55"/>' +
+      olho(88) + olho(132) +
+      '<ellipse class="boca" cx="110" cy="122" rx="15" ry="1" fill="#7a1628"/>' +
+      '<ellipse class="lingua" cx="110" cy="123" rx="8" ry="0.1" fill="#ff7b93"/>' +
+      '<g class="mandibula"><path d="M97 121 Q110 134 123 121 Q110 127 97 121 Z" fill="#ffb238" stroke="#cf7d12" stroke-width="2" stroke-linejoin="round"/></g>' +
+      '<g class="bico"><path d="M90 106 Q110 96 130 106 Q131 118 120 124 Q113 128 110 134 Q106 127 99 123 Q89 117 90 106 Z" fill="#ffb238" stroke="#cf7d12" stroke-width="2" stroke-linejoin="round"/>' +
+        '<path d="M98 108 Q110 103 122 108" stroke="#fff" stroke-opacity=".5" stroke-width="3" fill="none" stroke-linecap="round"/></g>' +
+    '</g></svg>';
+}
+
+const Fantoches = {
+  lista:[],
+  falante(lang){ return this.lista.find(f => f.lang === lang && f.visivel()) || null; },
+  calarTodos(){ this.lista.forEach(f => f.calar()); }
+};
+class Fantoche{
+  constructor(lang, host){
+    this.lang = lang; this.host = host;
+    host.classList.add(lang === "pt" ? "tuca" : "robin");
+    host.innerHTML = '<div class="mola">' + svgFantoche(lang) + '</div>';
+    this.mola = host.querySelector(".mola");
+    this.svg  = host.querySelector("svg");
+    this.boca = this.svg.querySelector(".boca");
+    this.lingua = this.svg.querySelector(".lingua");
+    this.jaw  = this.svg.querySelector(".mandibula");
+    this.bico = this.svg.querySelector(".bico");
+    this.pups = Array.from(this.svg.querySelectorAll(".pupila"));
+    this.abertura = 0; this.an = null; this.buf = null; this.simulado = false; this.t0 = 0;
+    this.olho = { x:0.4, y:0.15 }; this.olhoAlvo = { x:0.4, y:0.15 };
+    this.loop = this.loop.bind(this);
+    Fantoches.lista.push(this);
+    this.agendarPiscada();
+    requestAnimationFrame(this.loop);
+  }
+  visivel(){
+    const tela = this.host.closest(".screen");
+    return !!tela && tela.classList.contains("on") && !this.host.classList.contains("fora");
+  }
+  falarCom(analyser){ this.an = analyser; this.buf = new Float32Array(analyser.fftSize); this.simulado = false; }
+  falarSimulado(){ this.an = null; this.simulado = true; this.t0 = performance.now(); }
+  calar(){ this.an = null; this.simulado = false; }
+  loop(t){
+    requestAnimationFrame(this.loop);
+    if(!this.visivel() && this.abertura < 0.01) return;
+    let alvo = 0;
+    if(this.an){
+      this.an.getFloatTimeDomainData(this.buf);
+      let s = 0; for(let i = 0; i < this.buf.length; i++) s += this.buf[i] * this.buf[i];
+      const rms = Math.sqrt(s / this.buf.length);
+      alvo = Math.min(1, Math.max(0, (rms - 0.012) * 7));
+    }else if(this.simulado){
+      const k = (t - this.t0) / 1000;
+      const silaba = Math.sin(k * 2 * Math.PI * 4.2) * 0.5 + 0.5;
+      const frase  = 0.55 + 0.45 * Math.sin(k * 1.7 + Math.sin(k * 3.1));
+      alvo = Math.max(0, silaba * frase * 1.05 - 0.08);
+    }
+    // abre rápido e fecha um pouco mais devagar, como uma boca de verdade
+    this.abertura += (alvo - this.abertura) * (alvo > this.abertura ? 0.55 : 0.3);
+    this.aplicarBoca(this.abertura);
+    this.olho.x += (this.olhoAlvo.x - this.olho.x) * 0.12;
+    this.olho.y += (this.olhoAlvo.y - this.olho.y) * 0.12;
+    const tr = "translate(" + (this.olho.x * 5).toFixed(2) + " " + (this.olho.y * 4).toFixed(2) + ")";
+    this.pups.forEach(p => p.setAttribute("transform", tr));
+  }
+  aplicarBoca(a){
+    const ry = 1 + a * 11;
+    this.boca.setAttribute("ry", ry.toFixed(2));
+    this.boca.setAttribute("cy", (121 + ry).toFixed(2));
+    this.lingua.setAttribute("ry", Math.max(0.1, a * 4.5).toFixed(2));
+    this.lingua.setAttribute("cy", (121 + ry * 1.5).toFixed(2));
+    this.jaw.setAttribute("transform", "translate(0 " + (a * 20).toFixed(2) + ")");
+    this.bico.setAttribute("transform", "rotate(" + (-a * 6).toFixed(2) + " 110 104)");
+  }
+  olharPara(el){
+    if(!el){ this.olhoAlvo = { x:0.4, y:0.15 }; return; }
+    const r = el.getBoundingClientRect(), s = this.svg.getBoundingClientRect();
+    const dx = (r.left + r.width / 2) - (s.left + s.width / 2);
+    const dy = (r.top + r.height / 2) - (s.top + s.height * 0.3);
+    const d = Math.hypot(dx, dy) || 1;
+    this.olhoAlvo = { x:dx / d, y:dy / d };
+  }
+  agendarPiscada(){
+    setTimeout(() => {
+      if(!this.host.classList.contains("dorme")) reanimar(this.svg, "pisca", 180);
+      this.agendarPiscada();
+    }, 2200 + Math.random() * 3500);
+  }
+  feliz(){ reanimar(this.mola, "pulo", 700); }
+  acenar(){ reanimar(this.mola, "aceno", 900); }
+  dancar(on){ this.mola.classList.toggle("danca", !!on); }
+  entrar(){ requestAnimationFrame(() => requestAnimationFrame(() => this.host.classList.remove("fora"))); }
+  sair(){ this.host.classList.add("fora"); }
+}
+const FT = {
+  t02pt:new Fantoche("pt", $("#fT02pt")), t02en:new Fantoche("en", $("#fT02en")),
+  lpt:new Fantoche("pt", $("#fLpt")),     len:new Fantoche("en", $("#fLen"))
+};
+
+/* =========================== 10. VOZ ===================================== *
+ * Um único canal de voz: cada fala nova interrompe a anterior.
+ * Ordem: arquivos em ./audio/{lang}/{id}.mp3 → voz neural do sistema.
+ * Falha de carregamento não é mais definitiva: tenta de novo após 15 s.   */
 const Voice = {
-  vozes:[], cacheAssets:{}, assetsDisponiveis:false,
-  BONS:["natural","neural","premium","enhanced","multilingual","google","siri","eloquence"],
-  RUINS:["compact","espeak","festival","pico","novelty"],
-  carregar(){
-    if(!window.speechSynthesis) return;
-    this.vozes = speechSynthesis.getVoices() || [];
-  },
+  vozes:[], cache:{}, assetsDisponiveis:false, fonte:null, canal:0, falando:false,
+  BONS:["online","natural","neural","premium","enhanced","multilingual","siri","eloquence"],
+  RUINS:["compact","espeak","festival","pico","novelty","desktop","maria","daniel","heloisa","heloísa","luciana"],
+  carregar(){ if(window.speechSynthesis) this.vozes = speechSynthesis.getVoices() || []; },
   pontuar(v, lang){
     const n = (v.name + " " + (v.voiceURI || "")).toLowerCase();
     let p = 0;
@@ -611,13 +842,10 @@ const Voice = {
     else return -1;
     this.BONS.forEach(k => { if(n.includes(k)) p += 18; });
     this.RUINS.forEach(k => { if(n.includes(k)) p -= 40; });
-    if(v.localService === false) p += 8;   // vozes de nuvem costumam ser neurais
+    if(v.localService === false) p += 8;
     return p;
   },
-  lista(lang){
-    return this.vozes.map(v => ({ v, p:this.pontuar(v, lang) }))
-                     .filter(x => x.p >= 0).sort((a,b) => b.p - a.p).map(x => x.v);
-  },
+  lista(lang){ return this.vozes.map(v => ({ v, p:this.pontuar(v, lang) })).filter(x => x.p >= 0).sort((a,b) => b.p - a.p).map(x => x.v); },
   escolher(lang){
     const fix = lang === "en" ? S.preferencias.vozEn : S.preferencias.vozPt;
     if(fix){ const f = this.vozes.find(v => v.voiceURI === fix); if(f) return f; }
@@ -627,88 +855,112 @@ const Voice = {
     const v = this.escolher(lang);
     if(!v) return { txt:"nenhuma voz encontrada", ok:false };
     const n = v.name.toLowerCase();
-    const boa = this.BONS.some(k => n.includes(k));
-    return { txt:v.name, ok:boa };
+    return { txt:v.name, ok:this.BONS.some(k => n.includes(k)) && !this.RUINS.some(k => n.includes(k)) };
   },
-  // tenta buscar o arquivo gerado por IA; se não existir, marca para não tentar de novo
-  async asset(lang, id){
-    const chave = lang + "/" + id;
-    if(chave in this.cacheAssets) return this.cacheAssets[chave];
-    if(!Audio2.init()){ this.cacheAssets[chave] = null; return null; }
-    try{
-      const r = await fetch("audio/" + chave + ".mp3");
-      if(!r.ok) throw new Error("404");
-      const ab = await r.arrayBuffer();
-      const buf = await Audio2.ctx.decodeAudioData(ab);
-      this.cacheAssets[chave] = buf; this.assetsDisponiveis = true;
-      return buf;
-    }catch(e){ this.cacheAssets[chave] = null; return null; }
+  asset(lang, id){
+    const k = lang + "/" + id, c = this.cache[k];
+    if(c && c.buf) return Promise.resolve(c.buf);
+    if(c && c.prom) return c.prom;
+    if(c && c.falhou && Date.now() - c.t < 15000) return Promise.resolve(null);
+    if(!Audio2.init()) return Promise.resolve(null);
+    const prom = (async () => {
+      try{
+        const r = await fetch("audio/" + k + ".mp3");
+        if(!r.ok) throw new Error(String(r.status));
+        const buf = await Audio2.ctx.decodeAudioData(await r.arrayBuffer());
+        this.cache[k] = { buf }; this.assetsDisponiveis = true;
+        return buf;
+      }catch(e){ this.cache[k] = { falhou:true, t:Date.now() }; return null; }
+    })();
+    this.cache[k] = { prom };
+    return prom;
   },
-  tocarBuffer(buf){
+  preCarregar(pares, limiteMs){
+    return Promise.race([Promise.all(pares.map(p => this.asset(p[0], p[1]))), espera(limiteMs)]);
+  },
+  tocarBuffer(buf, lang){
     return new Promise(res => {
-      const src = Audio2.ctx.createBufferSource();
-      src.buffer = buf; src.connect(Audio2.master);
-      src.onended = res; src.start();
-      falandoChar(true);
-      setTimeout(() => falandoChar(false), buf.duration * 1000);
+      const ctx = Audio2.ctx, src = ctx.createBufferSource(), an = ctx.createAnalyser();
+      an.fftSize = 1024;
+      src.buffer = buf; src.connect(an); an.connect(Audio2.master);
+      const f = Fantoches.falante(lang);
+      if(f) f.falarCom(an);
+      this.fonte = { src, res };
+      src.onended = () => { if(f) f.calar(); if(this.fonte && this.fonte.src === src) this.fonte = null; res(); };
+      src.start();
     });
   },
-  async falar(texto, lang, opts){
-    opts = opts || {};
-    Audio2.duck(true);
-    try{
-      if(opts.assetId){
-        const b = await this.asset(lang, opts.assetId);
-        if(b){ await this.tocarBuffer(b); return; }
-      }
-      await this.tts(texto, lang, opts.taxa);
-    } finally { Audio2.duck(false); }
-  },
-  tts(texto, lang, taxa){
+  tts(texto, lang, taxa, canal){
     return new Promise(res => {
       if(!window.speechSynthesis) return setTimeout(res, 800);
+      const f = Fantoches.falante(lang);
+      let feito = false;
+      const fim = () => { if(!feito){ feito = true; if(f) f.calar(); res(); } };
       try{
         const u = new SpeechSynthesisUtterance(texto);
         const v = this.escolher(lang);
-        if(v){ u.voice = v; u.lang = v.lang; } else { u.lang = lang === "en" ? "en-US" : "pt-BR"; }
+        if(v){ u.voice = v; u.lang = v.lang; } else u.lang = lang === "en" ? "en-US" : "pt-BR";
         u.rate = taxa || 0.86; u.pitch = 1.08;
-        let feito = false;
-        const fim = () => { if(!feito){ feito = true; falandoChar(false); res(); } };
+        u.onstart = () => { if(f && canal === this.canal) f.falarSimulado(); };
         u.onend = fim; u.onerror = fim;
-        falandoChar(true);
         speechSynthesis.speak(u);
         setTimeout(fim, 6000);
-      }catch(e){ setTimeout(res, 800); }
+      }catch(e){ setTimeout(fim, 800); }
     });
   },
-  parar(){ try{ speechSynthesis.cancel(); }catch(e){} falandoChar(false); }
+  /* assetId pode ser um id ou uma lista de ids tocados em sequência */
+  async falar(texto, lang, opts){
+    opts = opts || {};
+    this.parar();
+    const canal = ++this.canal;
+    this.falando = true; Audio2.duck(true);
+    try{
+      const ids = opts.assetId == null ? [] : [].concat(opts.assetId);
+      if(ids.length){
+        const bufs = await Promise.all(ids.map(i => this.asset(lang, i)));
+        if(canal !== this.canal) return;
+        if(bufs.every(Boolean)){
+          for(const b of bufs){ if(canal !== this.canal) return; await this.tocarBuffer(b, lang); }
+          return;
+        }
+      }
+      if(canal !== this.canal) return;
+      await this.tts(texto, lang, opts.taxa, canal);
+    }finally{
+      if(canal === this.canal){ this.falando = false; Audio2.duck(false); }
+    }
+  },
+  parar(){
+    this.canal++;
+    try{ speechSynthesis.cancel(); }catch(e){}
+    if(this.fonte){ const f = this.fonte; this.fonte = null; try{ f.src.onended = null; f.src.stop(); }catch(e){} f.res(); }
+    Fantoches.calarTodos();
+    this.falando = false; Audio2.duck(false);
+  }
 };
-if(window.speechSynthesis){
-  Voice.carregar();
-  speechSynthesis.onvoiceschanged = () => Voice.carregar();
-}
-function falandoChar(on){ document.querySelectorAll(".char").forEach(c => c.classList.toggle("talking", !!on)); }
-function pararAudio(){ Voice.parar(); Music.parar(); }
+if(window.speechSynthesis){ Voice.carregar(); speechSynthesis.onvoiceschanged = () => Voice.carregar(); }
 const falar = (t, l, o) => Voice.falar(t, l, o);
+function pararAudio(){ Voice.parar(); Music.parar(); }
 
-/* ======================== 7. REGRAS DO PRODUTO =========================== */
-function linguaDaSessao(){
-  const p = S.preferencias.linguaFixada;
-  if(p) return p;
-  return (S.ultimaLingua === "pt") ? "en" : "pt";
+/* ======================== 11. REGRAS DO PRODUTO ========================== */
+/* Sequência de línguas da lição: PT → EN, salvo se o adulto fixou uma. */
+function linguasDaSessao(){
+  const f = S.preferencias.linguaFixada;
+  return f ? [f] : ["pt", "en"];
 }
+/* Seleção sorteada, respeitando a repetição espaçada:
+   - devidas e novas são embaralhadas (antes vinham sempre na mesma ordem);
+   - havendo as duas, a trinca mistura revisão e novidade;
+   - a ordem final de apresentação também é sorteada.                    */
 function selecionarPalavras(mundoId){
   const mundo = CONTENT.worlds.find(w => w.id === mundoId), h = hoje();
-  const devidas = mundo.words.filter(w => S.progresso[w.id] && S.progresso[w.id].proximaRevisao <= h)
-    .sort((a,b) => S.progresso[a.id].proximaRevisao.localeCompare(S.progresso[b.id].proximaRevisao));
-  const novas = mundo.words.filter(w => !S.progresso[w.id]);
-  let sel = devidas.concat(novas).slice(0,3);
-  if(sel.length < 3){
-    const resto = mundo.words.filter(w => !sel.includes(w))
-      .sort((a,b) => S.progresso[a.id].ultima.localeCompare(S.progresso[b.id].ultima));
-    sel = sel.concat(resto).slice(0,3);
-  }
-  return sel;
+  const devidas = embaralhar(mundo.words.filter(w => S.progresso[w.id] && S.progresso[w.id].proximaRevisao <= h));
+  const novas   = embaralhar(mundo.words.filter(w => !S.progresso[w.id]));
+  let sel = [];
+  if(devidas.length && novas.length) sel = devidas.slice(0, 2).concat(novas.slice(0, 1));
+  sel = sel.concat(devidas, novas).filter((w, i, a) => a.indexOf(w) === i).slice(0, 3);
+  if(sel.length < 3) sel = sel.concat(embaralhar(mundo.words.filter(w => !sel.includes(w)))).slice(0, 3);
+  return embaralhar(sel);
 }
 function registrarExposicao(w){
   const h = hoje();
@@ -725,189 +977,223 @@ function somarUso(seg){
   const d = S.usoDiario[hoje()] || { segundos:0, sessoes:0 };
   d.segundos += seg; d.sessoes += 1; S.usoDiario[hoje()] = d; save();
 }
-
-/* ============================ 8. UI BÁSICA ============================== */
-const $  = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
-function ir(id){ $$(".screen").forEach(s => s.classList.toggle("on", s.id === id)); }
-const espera = ms => new Promise(r => setTimeout(r, ms));
-function aviso(txt, ms){ const n = $("#note"); n.textContent = txt; n.style.display = "block";
-  clearTimeout(n._t); n._t = setTimeout(() => n.style.display = "none", ms || 3200); }
-function embaralhar(a){ const b = a.slice(); for(let i = b.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
-function pintarChar(el, lang){
-  const c = CONTENT.characters[lang];
-  el.className = "char " + c.cls;
-  el.innerHTML = c.glyph + '<span class="flag">' + c.flag + '</span>';
-}
 function montarObjeto(w, tam){
   const b = document.createElement("button");
-  b.className = "obj " + tam + " enter"; b.dataset.id = w.id;
+  b.className = "obj " + tam + " enter"; b.dataset.id = w.id; b.dataset.tap = "1";
   b.innerHTML = w.color ? '<span class="swatch" style="background:' + w.color + '"></span>' : w.art;
   return b;
 }
 
-/* ========================== 9. MOTOR DE LIÇÃO ============================ */
-const sessao = { token:0, ativa:false, inicio:0, lingua:"pt", mundo:null, palavras:[], blocos:0 };
+/* ========================== 12. MOTOR DE LIÇÃO =========================== */
+const sessao = { token:0, ativa:false, inicio:0, linguas:["pt","en"], mundo:null, palavras:[] };
 class Abortou extends Error {}
 function checar(tok){ if(tok !== sessao.token) throw new Abortou(); }
 async function pausa(ms, tok){ await espera(ms); checar(tok); }
-function abortarSessao(){ sessao.token++; sessao.ativa = false; pararAudio(); }
+function abortarSessao(){ sessao.token++; sessao.ativa = false; pararAudio(); Fantoches.lista.forEach(f => f.dancar(false)); }
+const fantocheDaLicao = L => L === "pt" ? FT.lpt : FT.len;
+
+function assetsDaSessao(){
+  const pares = [];
+  sessao.linguas.forEach(L => {
+    ["ola","vamos_ver","w_" + sessao.mundo,"cantar","bravo"].forEach(i => pares.push([L, i]));
+    sessao.palavras.forEach(w => { pares.push([L, w.id]); pares.push([L, "q_" + w.id]); });
+  });
+  return pares;
+}
 
 async function iniciarLicao(mundoId){
   if(limiteAtingido()) return renderT02();
   const tok = ++sessao.token;
-  sessao.ativa = true; sessao.inicio = Date.now();
-  sessao.lingua = linguaDaSessao(); sessao.mundo = mundoId;
-  sessao.palavras = selecionarPalavras(mundoId); sessao.blocos = 0;
-  const L = sessao.lingua;
-  pintarChar($("#charLesson"), L);
+  sessao.ativa = true; sessao.inicio = Date.now(); sessao.mundo = mundoId;
+  sessao.linguas = linguasDaSessao();
+  sessao.palavras = selecionarPalavras(mundoId);
+  FT.lpt.sair(); FT.len.sair();
+  $("#stage").innerHTML = "";
   ir("lesson");
+  await Voice.preCarregar(assetsDaSessao(), 1500);   // evita atraso na primeira fala
   try{
-    await bloco1(tok, L); await bloco2(tok, L); await bloco3(tok, L); bloco4(L);
+    for(const L of sessao.linguas){
+      await trocarFantoche(L, tok);
+      await bloco1(tok, L);
+      await bloco2(tok, L);
+      await bloco3(tok, L);
+    }
+    const ultimo = fantocheDaLicao(sessao.linguas[sessao.linguas.length - 1]);
+    ultimo.acenar(); await pausa(900, tok);
+    bloco4();
   }catch(e){ if(!(e instanceof Abortou)) console.error(e); }
 }
 
-/* Bloco 1 — Apresentar: som do animal primeiro, depois a palavra. */
+/* Troca de fantoche: quem sai acena e desce; quem entra sobe e se apresenta. */
+async function trocarFantoche(L, tok){
+  const entra = fantocheDaLicao(L), sai = fantocheDaLicao(L === "pt" ? "en" : "pt");
+  if(!sai.host.classList.contains("fora")){
+    sai.acenar(); await pausa(800, tok);
+    sai.sair();   await pausa(450, tok);
+  }
+  $("#stage").innerHTML = "";
+  entra.entrar(); await pausa(700, tok);
+  entra.feliz();
+  await falar(FALAS.ola[L], L, { assetId:"ola" }); checar(tok);
+  await pausa(250, tok);
+}
+
+/* Bloco 1 — Apresentar. O fantoche olha para cada item enquanto o nomeia. */
 async function bloco1(tok, L){
   const stage = $("#stage"); stage.innerHTML = "";
+  const f = fantocheDaLicao(L);
   const mundo = CONTENT.worlds.find(w => w.id === sessao.mundo);
-  await falar(L === "pt" ? "Vamos ver " + mundo.name.pt + "!" : "Let's see " + mundo.name.en + "!", L);
+  await falar(FALAS.vamos[L] + " " + mundo.name[L] + "!", L, { assetId:["vamos_ver", "w_" + mundo.id] });
   checar(tok);
   for(const w of sessao.palavras){
     const el = montarObjeto(w, "small");
-    el.onclick = async () => {
-      el.classList.add("hit"); setTimeout(() => el.classList.remove("hit"), 900);
-      Voice.parar();
-      if(w.sfx){ SFX.play(w.sfx); await espera(SFX.play ? 0 : 0); }
-      await falar(w[L], L, { assetId:w.id });
+    el._tap = async () => {
+      if(tok !== sessao.token) return;
+      reanimar(el, "hit", 900); f.olharPara(el);
+      if(w.sfx){ SFX.play(w.sfx); await espera(350); }
+      if(tok === sessao.token) falar(w[L], L, { assetId:w.id });
     };
     stage.appendChild(el);
     await pausa(240, tok);
+    f.olharPara(el);
     if(w.sfx){ const d = SFX.play(w.sfx); await pausa(d, tok); }
-    await falar(w[L], L, { assetId:w.id });
-    checar(tok);
+    await falar(w[L], L, { assetId:w.id }); checar(tok);
     await pausa(850, tok);
   }
-  sessao.blocos = 1;
-  await pausa(500, tok);
+  f.olharPara(null);
+  await pausa(400, tok);
 }
 
-/* Bloco 2 — Tocar: erro nunca é punido. */
+/* Bloco 2 — Tocar. O toque já vale enquanto a pergunta ainda está sendo
+   feita; ordem das perguntas e posição das opções são sorteadas.        */
 async function bloco2(tok, L){
-  const stage = $("#stage");
-  for(const alvo of sessao.palavras){
+  const stage = $("#stage"), f = fantocheDaLicao(L);
+  for(const alvo of embaralhar(sessao.palavras)){
     checar(tok);
     const distrator = embaralhar(sessao.palavras.filter(w => w.id !== alvo.id))[0];
     stage.innerHTML = "";
-    embaralhar([alvo, distrator]).forEach(w => stage.appendChild(montarObjeto(w, "big")));
-    await pausa(300, tok);
-    const frase = question(alvo, L);
-    await falar(frase, L, { assetId:"q_" + alvo.id });
-    checar(tok);
+    const els = embaralhar([alvo, distrator]).map(w => { const e = montarObjeto(w, "big"); stage.appendChild(e); return e; });
+    const frase = question(alvo, L), qid = "q_" + alvo.id;
     await new Promise(resolve => {
-      let fim = false;
-      const lembrete = setInterval(() => {
-        if(fim || tok !== sessao.token) return clearInterval(lembrete);
-        falar(frase, L, { assetId:"q_" + alvo.id });
-      }, 6000);
-      stage.querySelectorAll(".obj").forEach(el => {
-        el.onclick = async () => {
-          if(fim || tok !== sessao.token) return;
-          Voice.parar();
-          if(el.dataset.id === alvo.id){
-            fim = true; clearInterval(lembrete);
-            el.classList.add("hit");
-            stage.querySelectorAll(".obj").forEach(o => { if(o !== el) o.style.opacity = ".25"; });
-            if(alvo.sfx) SFX.play(alvo.sfx);
-            await espera(alvo.sfx ? 420 : 0);
-            await falar(alvo[L], L, { assetId:alvo.id });
-            setTimeout(resolve, 380);
-          }else{
-            el.classList.add("wobble");
-            setTimeout(() => el.classList.remove("wobble"), 640);
-            falar(frase, L, { assetId:"q_" + alvo.id });
-          }
-        };
+      let fim = false, ultimaAcao = Date.now();
+      const perguntar = () => { ultimaAcao = Date.now(); falar(frase, L, { assetId:qid }); };
+      const vigia = setInterval(() => {
+        if(tok !== sessao.token){ clearInterval(vigia); resolve(); return; }
+        if(fim){ clearInterval(vigia); return; }
+        if(!Voice.falando && Date.now() - ultimaAcao >= 6000) perguntar();   // lembrete após 6 s parado
+      }, 400);
+      els.forEach(el => el._tap = async () => {
+        if(fim || tok !== sessao.token) return;
+        ultimaAcao = Date.now();
+        f.olharPara(el);
+        if(el.dataset.id === alvo.id){
+          fim = true; clearInterval(vigia);
+          els.forEach(o => { o.dataset.off = "1"; if(o !== el) o.style.opacity = ".25"; });
+          reanimar(el, "hit", 900); f.feliz();
+          if(alvo.sfx){ SFX.play(alvo.sfx); await espera(420); }
+          if(tok === sessao.token) await falar(alvo[L], L, { assetId:alvo.id });
+          setTimeout(resolve, 380);
+        }else{
+          reanimar(el, "wobble", 640);          // erro não existe: só um balanço suave
+          perguntar();
+        }
       });
+      perguntar();
     });
     checar(tok);
+    f.olharPara(null);
     await pausa(450, tok);
   }
-  sessao.blocos = 2;
 }
 
-/* Bloco 3 — Cantar: música real, palavra cantada em cima do tempo. */
+/* Bloco 3 — Cantar. O fantoche dança no tempo da música e canta as palavras. */
 async function bloco3(tok, L){
   const stage = $("#stage"); stage.innerHTML = "";
-  const els = sessao.palavras.map(w => { const e = montarObjeto(w, "small"); stage.appendChild(e); return e; });
+  const f = fantocheDaLicao(L);
+  const els = sessao.palavras.map(w => {
+    const e = montarObjeto(w, "small");
+    e._tap = () => { reanimar(e, "sing", 700); if(w.sfx) SFX.play(w.sfx); };
+    stage.appendChild(e); return e;
+  });
   await pausa(280, tok);
-  const compassos = 8;
-  const t = Music.tocar(sessao.mundo, compassos);
-  const bar = (t.bar || 2.5) * 1000;          // duração do compasso em ms
-  const inicioMs = Date.now();                 // referência para sincronizar a voz
-  // 1 compasso de introdução, depois 1 palavra por compasso, 2 voltas
-  const agenda = [];
-  for(let volta = 0; volta < 2; volta++)
-    sessao.palavras.forEach((w, i) => agenda.push({ w, i, compasso: 1 + volta * 3 + i }));
-  for(const item of agenda){
-    const alvoMs = item.compasso * bar;
-    const faltam = alvoMs - (Date.now() - inicioMs);
-    if(faltam > 0) await pausa(faltam, tok);   // espera cair no tempo da música
-    else checar(tok);
-    els[item.i].classList.add("sing");
-    setTimeout(() => els[item.i].classList.remove("sing"), 700);
-    await falar(item.w[L], L, { assetId:item.w.id, taxa:0.9 });
-    checar(tok);
-  }
-  await pausa(700, tok);
-  await falar(L === "pt" ? "Muito bem!" : "Very good!", L, { assetId:"bravo" });
-  checar(tok);
+  await falar(FALAS.cantar[L], L, { assetId:"cantar" }); checar(tok);
+  const bar = (Music.tocar(sessao.mundo, 8).bar || 2.5) * 1000;
+  const inicio = Date.now();
+  f.dancar(true);
+  try{
+    const agenda = [];
+    for(let volta = 0; volta < 2; volta++)
+      sessao.palavras.forEach((w, i) => agenda.push({ w, i, compasso:1 + volta * 3 + i }));
+    for(const item of agenda){
+      const faltam = item.compasso * bar - (Date.now() - inicio);
+      if(faltam > 0) await pausa(faltam, tok); else checar(tok);
+      reanimar(els[item.i], "sing", 700); f.olharPara(els[item.i]);
+      await falar(item.w[L], L, { assetId:item.w.id, taxa:0.9 }); checar(tok);
+    }
+    await pausa(700, tok);
+  }finally{ f.dancar(false); f.olharPara(null); }
+  f.feliz();
+  await falar(FALAS.bravo[L], L, { assetId:"bravo" }); checar(tok);
   Music.parar();
-  sessao.blocos = 3;
   await pausa(300, tok);
 }
 
-/* Bloco 4 — Ponte para o mundo real. */
-function bloco4(L){
-  sessao.blocos = 4;
+/* Bloco 4 — Ponte para o mundo real (tela do adulto). */
+function bloco4(){
   sessao.palavras.forEach(registrarExposicao);
   const dur = Math.round((Date.now() - sessao.inicio) / 1000);
-  S.sessoes.push({ inicio:new Date(sessao.inicio).toISOString(), duracao:dur, mundo:sessao.mundo, lingua:L, blocos:4 });
-  S.ultimaLingua = L; S.ultimaData = hoje();
+  S.sessoes.push({ inicio:new Date(sessao.inicio).toISOString(), duracao:dur, mundo:sessao.mundo,
+                   lingua:sessao.linguas.join("+"), blocos:4 });
+  S.ultimaData = hoje();
   somarUso(dur);
   sessao.ativa = false;
-  $("#bridgeTitle").textContent = "Hoje a sessão foi em " + (L === "pt" ? "português" : "inglês") + ". Leve estas palavras para a rotina:";
+  $("#bridgeTitle").textContent = sessao.linguas.length > 1
+    ? "Hoje foram as mesmas 3 palavras em português e em inglês. Leve-as para a rotina:"
+    : "Hoje a sessão foi em " + (sessao.linguas[0] === "pt" ? "português" : "inglês") + ". Leve estas palavras para a rotina:";
   $("#bridgePairs").innerHTML = sessao.palavras.map(w => '<div class="pair"><b>' + w.pt + '</b> · ' + w.en + '</div>').join("");
-  $("#bridgeTip").innerHTML = "💡 " + sessao.palavras[0].tip;
+  $("#bridgeTip").innerHTML = "💡 " + embaralhar(sessao.palavras)[0].tip;
   ir("t06");
 }
 
-/* =========================== 10. SELEÇÃO DE MUNDO ======================== */
+/* =========================== 13. SELEÇÃO DE MUNDO ======================== */
 function renderT02(){
   abortarSessao();
-  const L = linguaDaSessao();
-  pintarChar($("#charT02"), L);
+  const L0 = linguasDaSessao()[0];
+  const descanso = limiteAtingido();
+  let escolhido = false;
   const cont = $("#worlds"); cont.innerHTML = "";
   CONTENT.worlds.forEach(wd => {
     const b = document.createElement("button");
-    b.className = "world";
+    b.className = "world"; b.dataset.tap = "1";
+    if(descanso) b.dataset.off = "1";
     if(wd.id === "cores"){
       b.innerHTML = '<span class="ring">' + ["#e0453e","#3a7bd5","#f2c230"]
         .map(c => '<span class="dot" style="background:' + c + '"></span>').join("") + '</span>';
     }else b.textContent = wd.icon;
-    b.onclick = async () => {
-      if(limiteAtingido()) return;
-      pararAudio();
-      await falar(L === "pt" ? wd.name.pt : wd.name.en, L, { assetId:"w_" + wd.id });
+    b._tap = async () => {
+      if(escolhido || limiteAtingido()) return;
+      escolhido = true;                       // um arrasto por cima de vários mundos escolhe só o primeiro
+      $$(".world").forEach(x => x.dataset.off = "1");
+      reanimar(b, "hit", 700);
+      const f = L0 === "pt" ? FT.t02pt : FT.t02en;
+      f.olharPara(b); f.feliz();
+      await falar(wd.name[L0], L0, { assetId:"w_" + wd.id });
       iniciarLicao(wd.id);
     };
     cont.appendChild(b);
   });
-  $("#t02").classList.toggle("rest", limiteAtingido());
+  [FT.t02pt, FT.t02en].forEach(f => {
+    f.host.classList.toggle("dorme", descanso);
+    f.host.dataset.tap = "1";
+    if(descanso) f.host.dataset.off = "1"; else delete f.host.dataset.off;
+    f.olharPara(null);
+    f.host._tap = () => { if(escolhido) return; f.feliz(); falar(FALAS.ola[f.lang], f.lang, { assetId:"ola" }); };
+  });
+  $("#t02").classList.toggle("rest", descanso);
   ir("t02");
 }
 
-/* ============================ 11. PORTÃO ================================= */
+/* ============================ 14. PORTÃO ================================= */
 let pressTimer = null;
 const adultBtn = $("#adultBtn");
 ["mousedown","touchstart"].forEach(ev => adultBtn.addEventListener(ev, e => {
@@ -923,21 +1209,19 @@ function abrirPortao(){
   adultBtn.classList.remove("charging"); pararAudio();
   const alvo = 10 + Math.floor(Math.random() * NUM.length);
   $("#gateQ").textContent = "Toque no número " + NUM[alvo - 10];
-  const opcoes = embaralhar([alvo, ...embaralhar([...Array(15).keys()].map(i => i + 10)
-    .filter(n => n !== alvo)).slice(0,3)]);
+  const opcoes = embaralhar([alvo, ...embaralhar([...Array(15).keys()].map(i => i + 10).filter(n => n !== alvo)).slice(0,3)]);
   const cont = $("#gateOpts"); cont.innerHTML = "";
   opcoes.forEach(n => {
     const b = document.createElement("button");
     b.className = "opt"; b.textContent = n;
-    b.onclick = () => { if(n === alvo) abrirPainel();
-      else { b.classList.add("wobble"); setTimeout(() => b.classList.remove("wobble"), 600); } };
+    b.onclick = () => { if(n === alvo) abrirPainel(); else reanimar(b, "wobble", 600); };
     cont.appendChild(b);
   });
   ir("gate");
 }
 $("#gateCancel").onclick = renderT02;
 
-/* ============================ 12. PAINEL ================================= */
+/* ============================ 15. PAINEL ================================= */
 let abaAtual = "uso";
 function abrirPainel(){
   abaAtual = "uso";
@@ -958,6 +1242,7 @@ function renderPainel(){
   else { body.innerHTML = htmlConfig(); ligarConfig(); }
 }
 const kpi = (v, s) => '<div class="kpi"><b>' + v + '</b><span>' + s + '</span></div>';
+const rotuloLingua = l => l === "pt" ? "🇧🇷 português" : l === "en" ? "🇺🇸 inglês" : "🇧🇷 → 🇺🇸";
 function htmlUso(){
   const dias = [];
   for(let i = 6; i >= 0; i--){
@@ -980,7 +1265,7 @@ function htmlUso(){
   '<div class="card"><h3>Últimas sessões</h3>' +
     (S.sessoes.length ? S.sessoes.slice(-6).reverse().map(s =>
       '<div class="row"><span>' + new Date(s.inicio).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) +
-      '</span><span>' + (s.lingua === "pt" ? "🇧🇷 português" : "🇺🇸 inglês") + " · " + Math.round(s.duracao/60) + " min · " + s.mundo + '</span></div>').join("")
+      '</span><span>' + rotuloLingua(s.lingua) + " · " + Math.round(s.duracao/60) + " min · " + s.mundo + '</span></div>').join("")
      : '<p style="font-size:13px;color:var(--muted);margin:0">Nenhuma sessão ainda.</p>') + '</div>';
 }
 function htmlPalavras(){
@@ -1003,22 +1288,19 @@ function htmlAudio(){
     '<option value="' + v.voiceURI + '"' + (sel === v.voiceURI ? " selected" : "") + '>' + v.name + '</option>').join("");
   return '<div class="card"><h3>Origem do áudio</h3>' +
     '<div class="row"><div><span>Arquivos gravados (pasta <code>audio/</code>)</span>' +
-    '<p>Quando presentes, são usados no lugar da voz do sistema. É o caminho de produção: gere-os com vozes neurais e copie para a pasta.</p></div>' +
+    '<p>Quando presentes, são usados no lugar da voz do sistema, e a boca dos fantoches acompanha o som real.</p></div>' +
     '<span class="badge' + (Voice.assetsDisponiveis ? "" : " warn") + '">' +
     (Voice.assetsDisponiveis ? "em uso" : "não encontrados") + '</span></div></div>' +
   '<div class="card"><h3>Voz do sistema (reserva)</h3>' +
-    '<div class="row"><div><span>Tuca 🦜 — português</span><p>' + qp.txt +
+    '<div class="row"><div><span>Tuca — português</span><p>' + qp.txt +
     '</p></div><span class="badge' + (qp.ok ? "" : " warn") + '">' + (qp.ok ? "neural" : "básica") + '</span></div>' +
     '<div class="row"><select id="vozPt">' + opt("pt", S.preferencias.vozPt) + '</select>' +
     '<button class="btn mini ghost" id="testPt">Ouvir</button></div>' +
-    '<div class="row"><div><span>Robin 🐦 — inglês</span><p>' + qe.txt +
+    '<div class="row"><div><span>Robin — inglês</span><p>' + qe.txt +
     '</p></div><span class="badge' + (qe.ok ? "" : " warn") + '">' + (qe.ok ? "neural" : "básica") + '</span></div>' +
     '<div class="row"><select id="vozEn">' + opt("en", S.preferencias.vozEn) + '</select>' +
-    '<button class="btn mini ghost" id="testEn">Ouvir</button></div>' +
-    '<p style="font-size:11px;color:var(--muted);margin:8px 0 0">Vozes marcadas como “básica” são sintetizadores antigos do sistema e não representam a qualidade do produto final.</p></div>' +
-  '<div class="card"><h3>Sons dos animais</h3>' +
-    '<p style="font-size:12px;color:var(--muted);margin:0 0 10px">Sintetizados por modelagem fonte-formante. Toque para ouvir:</p>' +
-    '<div class="sfxgrid">' + CONTENT.worlds[0].words.map(w =>
+    '<button class="btn mini ghost" id="testEn">Ouvir</button></div></div>' +
+  '<div class="card"><h3>Sons dos animais</h3><div class="sfxgrid">' + CONTENT.worlds[0].words.map(w =>
       '<button data-sfx="' + w.sfx + '" title="' + w.pt + '">' + w.art + '</button>').join("") + '</div></div>' +
   '<div class="card"><h3>Música</h3>' +
     '<div class="row"><div><span>Volume da trilha</span><p>A trilha abaixa sozinha quando o personagem fala.</p></div>' +
@@ -1029,15 +1311,12 @@ function htmlAudio(){
 function ligarAudio(){
   const sel = (id, chave) => { const e = $("#" + id); if(e) e.onchange = () => { S.preferencias[chave] = e.value; save(); }; };
   sel("vozPt", "vozPt"); sel("vozEn", "vozEn");
-  $("#testPt").onclick = () => { Voice.parar(); Voice.falar("Olá! Eu sou o Tuca. Vamos ver o cachorro?", "pt"); };
-  $("#testEn").onclick = () => { Voice.parar(); Voice.falar("Hi! I am Robin. Where is the dog?", "en"); };
+  $("#testPt").onclick = () => Voice.falar(FALAS.ola.pt, "pt", { assetId:"ola" });
+  $("#testEn").onclick = () => Voice.falar(FALAS.ola.en, "en", { assetId:"ola" });
   $$("[data-sfx]").forEach(b => b.onclick = () => SFX.play(b.dataset.sfx));
   $$("[data-mus]").forEach(b => b.onclick = () => { Music.parar(); Music.tocar(b.dataset.mus, 4); });
   const v = $("#volMus");
-  v.oninput = () => {
-    S.preferencias.volumeMusica = v.value / 100;
-    if(Audio2.musicBus) Audio2.musicBus.gain.value = S.preferencias.volumeMusica;
-  };
+  v.oninput = () => { S.preferencias.volumeMusica = v.value / 100; if(Audio2.musicBus) Audio2.musicBus.gain.value = S.preferencias.volumeMusica; };
   v.onchange = save;
 }
 function htmlConfig(){
@@ -1045,12 +1324,12 @@ function htmlConfig(){
   return '<div class="card"><h3>Tempo</h3><div class="row"><div><span>Limite diário</span>' +
     '<p>Ao atingir, o app entra em modo descanso até o dia seguinte.</p></div>' +
     '<span><input type="range" id="cfgLimite" min="5" max="60" step="5" value="' + p.limiteDiarioMin + '"> <b id="cfgLimiteV">' + p.limiteDiarioMin + ' min</b></span></div></div>' +
-  '<div class="card"><h3>Língua</h3><div class="row"><div><span>Alternância</span>' +
-    '<p>Por padrão o app alterna a língua a cada sessão.</p></div><select id="cfgLingua">' +
-    '<option value="">Alternar (recomendado)</option>' +
+  '<div class="card"><h3>Língua</h3><div class="row"><div><span>Sequência da lição</span>' +
+    '<p>Por padrão, cada lição passa as mesmas palavras primeiro em português e logo depois em inglês.</p></div><select id="cfgLingua">' +
+    '<option value="">Português → Inglês (recomendado)</option>' +
     '<option value="pt"' + (p.linguaFixada === "pt" ? " selected" : "") + '>Só português</option>' +
     '<option value="en"' + (p.linguaFixada === "en" ? " selected" : "") + '>Só inglês</option></select></div>' +
-    '<p style="font-size:11px;color:var(--muted);margin:8px 0 0">Tuca 🦜 só fala português e Robin 🐦 só fala inglês. Eles nunca traduzem um ao outro.</p></div>' +
+    '<p style="font-size:11px;color:var(--muted);margin:8px 0 0">O Tuca só fala português e o Robin só fala inglês. Eles nunca traduzem um ao outro.</p></div>' +
   '<div class="card"><h3>Acessibilidade</h3>' +
     '<div class="row"><span>Contraste alto</span><button class="switch' + (p.contrasteAlto ? " on" : "") + '" id="cfgHC"></button></div>' +
     '<div class="row"><span>Reduzir animações</span><button class="switch' + (p.animacaoReduzida ? " on" : "") + '" id="cfgRM"></button></div></div>' +
@@ -1073,9 +1352,7 @@ function ligarConfig(){
   alt($("#cfgRM"), "animacaoReduzida", aplicarPrefs);
   alt($("#cfgTel"), "telemetriaOptin");
   $("#cfgReset").onclick = () => {
-    if(confirm("Apagar todo o progresso deste aparelho?")){
-      S = structuredClone(DEFAULTS); save(); renderPainel(); aviso("Progresso apagado.");
-    }
+    if(confirm("Apagar todo o progresso deste aparelho?")){ S = structuredClone(DEFAULTS); save(); renderPainel(); aviso("Progresso apagado."); }
   };
 }
 function aplicarPrefs(){
@@ -1083,10 +1360,13 @@ function aplicarPrefs(){
   document.body.classList.toggle("reduced", S.preferencias.animacaoReduzida);
 }
 
-/* ========================== 13. CICLO DE VIDA ============================ */
+/* ========================== 16. CICLO DE VIDA ============================ */
 $("#finishBtn").onclick = renderT02;
-$("#t01").onclick = () => { Audio2.init(); Audio2.resume(); Voice.carregar(); pararAudio(); renderT02(); };
-document.addEventListener("visibilitychange", () => { if(document.hidden) abortarSessao(); });
+$("#t01").onclick = () => { Tela.cheia(); Audio2.init(); Audio2.resume(); Voice.carregar(); pararAudio(); renderT02(); };
+/* Ao ir para segundo plano, volta à seleção de mundo (antes a lição ficava travada). */
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden && !$("#t01").classList.contains("on") && !$("#t07").classList.contains("on") && !$("#gate").classList.contains("on")) renderT02();
+});
 aplicarPrefs();
 </script>
 </body>
